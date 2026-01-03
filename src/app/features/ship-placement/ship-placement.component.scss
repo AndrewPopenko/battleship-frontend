@@ -1,0 +1,283 @@
+.ship-placement-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  h1 {
+    text-align: center;
+    color: #1976d2;
+    margin-bottom: 20px;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #666;
+  }
+
+  .game-info {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+
+    p {
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    code {
+      background-color: #e0e0e0;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    .btn-copy-icon {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #e0e0e0;
+        transform: scale(1.1);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+
+    .waiting {
+      color: #ff9800;
+      font-style: italic;
+    }
+
+    .ready {
+      color: #4caf50;
+      font-weight: bold;
+    }
+  }
+
+  .error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+
+  .main-area {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .board-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+
+    h2 {
+      margin: 0;
+      color: #333;
+    }
+  }
+
+  .board-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .ships-section {
+    flex: 0 0 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    h2 {
+      margin: 0;
+      color: #333;
+    }
+  }
+
+  .instruction {
+    background-color: #e3f2fd;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 0;
+    text-align: center;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ships-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ship-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background-color: #fff;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #2196f3;
+      box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+    }
+
+    &.selected {
+      border-color: #2196f3;
+      background-color: #e3f2fd;
+    }
+
+    &.placed {
+      opacity: 0.6;
+      background-color: #e8f5e9;
+      border-color: #4caf50;
+
+      &:hover {
+        opacity: 1;
+        border-color: #f44336;
+      }
+    }
+  }
+
+  .ship-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .ship-name {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .ship-size {
+    display: flex;
+    gap: 2px;
+  }
+
+  .ship-cell {
+    color: #2196f3;
+    font-size: 18px;
+  }
+
+  .status {
+    color: #4caf50;
+    font-size: 24px;
+  }
+
+  .placement-status {
+    padding: 12px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    text-align: center;
+
+    p {
+      margin: 0;
+      font-weight: 600;
+    }
+  }
+
+  .ready-status {
+    background-color: #e8f5e9;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    border: 2px solid #4caf50;
+
+    p {
+      margin: 0;
+      font-size: 16px;
+    }
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .btn-primary {
+    background-color: #1976d2;
+    color: white;
+
+    &:not(:disabled):hover {
+      background-color: #1565c0;
+    }
+  }
+
+  .btn-secondary {
+    background-color: #757575;
+    color: white;
+
+    &:not(:disabled):hover {
+      background-color: #616161;
+    }
+  }
+
+  .btn-info {
+    background-color: #ff9800;
+    color: white;
+
+    &:not(:disabled):hover {
+      background-color: #f57c00;
+    }
+  }
+
+  .btn-large {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .main-area {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .ships-section {
+      width: 100%;
+      max-width: 400px;
+    }
+  }
+}

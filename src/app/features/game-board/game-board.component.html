@@ -1,0 +1,100 @@
+<div class="game-board-container">
+    <h1>Battleship - Battle</h1>
+
+    @if (loading()) {
+    <div class="loading">Loading...</div>
+    } @else if (game()) {
+    <div class="content">
+        <div class="game-header">
+            <div class="game-info">
+                <p>
+                    <strong>Game ID:</strong>
+                    <code (click)="copyGameId()">{{ game()!.id }}</code>
+                </p>
+                <p>
+                    <strong>Phase:</strong>
+                    @switch (game()!.phase) {
+                    @case (GamePhase.WAITING_FOR_PLAYER) {
+                    <span class="phase waiting">Waiting for player</span>
+                    }
+                    @case (GamePhase.PLACING_SHIPS) {
+                    <span class="phase placing">Placing ships</span>
+                    }
+                    @case (GamePhase.IN_PROGRESS) {
+                    <span class="phase playing">Playing</span>
+                    }
+                    @case (GamePhase.FINISHED) {
+                    <span class="phase finished">Finished</span>
+                    }
+                    }
+                </p>
+            </div>
+
+            @if (error()) {
+            <div class="error-message">{{ error() }}</div>
+            }
+
+            @if (game()!.phase === GamePhase.IN_PROGRESS) {
+            <div class="turn-indicator" [class.my-turn]="isMyTurn()">
+                @if (isMyTurn()) {
+                <span class="turn-text">🎯 YOUR TURN</span>
+                } @else {
+                <span class="turn-text">⏳ Opponent's turn...</span>
+                }
+            </div>
+            }
+        </div>
+
+        @if (game()!.phase === GamePhase.IN_PROGRESS || game()!.phase === GamePhase.FINISHED) {
+        <div class="boards-container">
+            <div class="board-wrapper">
+                <div class="board-header">
+                    <h2>Your Board</h2>
+                    <div class="player-info">
+                        <p class="player-name">{{ getCurrentPlayer()?.name }}</p>
+                        <p class="ships-status">
+                            Ships remaining: {{ getShipsRemaining(getCurrentPlayer()) }}
+                        </p>
+                    </div>
+                </div>
+                @if (getMyBoard().length > 0) {
+                <app-board [board]="getMyBoard()" [isOpponent]="false" [isInteractive]="false" />
+                }
+            </div>
+
+            <div class="board-wrapper">
+                <div class="board-header">
+                    <h2>Opponent's Board</h2>
+                    <div class="player-info">
+                        <p class="player-name">{{ getOpponent()?.name }}</p>
+                        <p class="ships-status">
+                            Ships remaining: {{ getShipsRemaining(getOpponent()) }}
+                        </p>
+                    </div>
+                </div>
+                @if (getOpponentBoard().length > 0) {
+                <app-board [board]="getOpponentBoard()" [isOpponent]="true" [isInteractive]="isMyTurn()"
+                    [highlightCell]="lastShot()" (cellClick)="onOpponentBoardClick($event)" />
+                }
+            </div>
+        </div>
+        } @else {
+        <div class="waiting-message">
+            <p>Waiting for game to start...</p>
+        </div>
+        }
+
+        @if (gameOverMessage()) {
+        <div class="game-over-modal">
+            <div class="modal-content">
+                <h2>Game Over!</h2>
+                <p class="game-over-text">{{ gameOverMessage() }}</p>
+                <button class="btn btn-primary" (click)="restartGame()">
+                    Back to Lobby
+                </button>
+            </div>
+        </div>
+        }
+    </div>
+    }
+</div>

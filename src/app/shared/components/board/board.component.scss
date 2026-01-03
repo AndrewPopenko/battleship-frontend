@@ -1,0 +1,70 @@
+$cell-size: 40px;
+$board-gap: 2px;
+
+$color-empty: #e0e0e0;
+$color-ship: #2196f3;
+$color-hit: #f44336;
+$color-miss: #9e9e9e;
+
+.board {
+  display: inline-flex;
+  flex-direction: column;
+  gap: $board-gap;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.board-row {
+  display: flex;
+  gap: $board-gap;
+}
+
+.cell {
+  width: $cell-size;
+  height: $cell-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 20px;
+  user-select: none;
+}
+
+.cell-empty {
+  background-color: $color-empty;
+}
+
+.cell-ship {
+  background-color: $color-ship;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.cell-hit {
+  background-color: $color-hit;
+  position: relative;
+}
+
+.cell-miss {
+  background-color: $color-miss;
+}
+
+.cell-highlight {
+  outline: 2px solid #ff9800;
+  outline-offset: -2px;
+}
+
+.cell-hover {
+  cursor: pointer;
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+  }
+}
+
+.cell-icon {
+  display: block;
+}

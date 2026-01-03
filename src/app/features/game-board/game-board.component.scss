@@ -1,0 +1,273 @@
+.game-board-container {
+  padding: 20px;
+  max-width: 1600px;
+  margin: 0 auto;
+
+  h1 {
+    text-align: center;
+    color: #1976d2;
+    margin-bottom: 20px;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #666;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .game-header {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .game-info {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+
+    p {
+      margin: 0;
+    }
+
+    code {
+      background-color: #e0e0e0;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #d0d0d0;
+      }
+    }
+
+    .phase {
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+
+      &.waiting {
+        background-color: #fff3e0;
+        color: #e65100;
+      }
+
+      &.placing {
+        background-color: #e3f2fd;
+        color: #1565c0;
+      }
+
+      &.playing {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      &.finished {
+        background-color: #f3e5f5;
+        color: #6a1b9a;
+      }
+    }
+  }
+
+  .error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 12px;
+    border-radius: 4px;
+    text-align: center;
+    animation: shake 0.5s;
+  }
+
+  .turn-indicator {
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    background-color: #e0e0e0;
+    transition: all 0.3s ease;
+
+    &.my-turn {
+      background-color: #c8e6c9;
+      animation: pulse 2s infinite;
+    }
+
+    .turn-text {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+  }
+
+  .boards-container {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .board-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .board-header {
+    text-align: center;
+
+    h2 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+  }
+
+  .player-info {
+    background-color: #f5f5f5;
+    padding: 10px;
+    border-radius: 4px;
+
+    p {
+      margin: 5px 0;
+    }
+
+    .player-name {
+      font-weight: bold;
+      color: #1976d2;
+    }
+
+    .ships-status {
+      font-size: 14px;
+      color: #666;
+    }
+  }
+
+  .waiting-message {
+    text-align: center;
+    padding: 60px 20px;
+    font-size: 18px;
+    color: #666;
+  }
+
+  .game-over-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s;
+  }
+
+  .modal-content {
+    background-color: white;
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s;
+
+    h2 {
+      margin: 0 0 20px 0;
+      color: #1976d2;
+    }
+
+    .game-over-text {
+      font-size: 24px;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+  }
+
+  .btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .btn-primary {
+    background-color: #1976d2;
+    color: white;
+
+    &:hover {
+      background-color: #1565c0;
+    }
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
+  }
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-10px);
+    }
+    75% {
+      transform: translateX(10px);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(50px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .boards-container {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .game-info {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+}

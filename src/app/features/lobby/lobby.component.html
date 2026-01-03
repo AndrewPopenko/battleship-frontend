@@ -1,0 +1,58 @@
+<div class="lobby-container">
+    <h1>Battleship</h1>
+
+    <div class="lobby-card">
+        <div class="form-group">
+            <label for="playerName">Your name:</label>
+            <input id="playerName" type="text" [(ngModel)]="playerName" placeholder="Enter name"
+                [disabled]="loading()" />
+        </div>
+
+        @if (error()) {
+        <div class="error-message">{{ error() }}</div>
+        }
+
+        <div class="actions">
+            <button class="btn btn-primary" (click)="createGame()" [disabled]="loading() || !playerName()">
+                @if (loading()) {
+                <span>Creating...</span>
+                } @else {
+                <span>Create New Game</span>
+                }
+            </button>
+        </div>
+
+        <div class="divider">
+            <span>or</span>
+        </div>
+
+        <div class="form-group">
+            <label for="gameId">Game ID to join:</label>
+            <input id="gameId" type="text" [(ngModel)]="gameIdToJoin" placeholder="Enter game ID"
+                [disabled]="loading()" />
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-secondary" (click)="joinGame()"
+                [disabled]="loading() || !playerName() || !gameIdToJoin()">
+                @if (loading()) {
+                <span>Connecting...</span>
+                } @else {
+                <span>Join Game</span>
+                }
+            </button>
+        </div>
+
+        @if (createdGameId()) {
+        <div class="game-id-info">
+            <p>Your game ID:</p>
+            <div class="game-id-box">
+                <code>{{ createdGameId() }}</code>
+                <button class="btn-copy-icon" (click)="copyGameId()" title="Copy ID">
+                    📋
+                </button>
+            </div>
+        </div>
+        }
+    </div>
+</div>

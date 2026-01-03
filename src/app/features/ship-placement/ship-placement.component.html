@@ -1,0 +1,104 @@
+<div class="ship-placement-container">
+    <h1>Ship Placement</h1>
+
+    @if (loading()) {
+    <div class="loading">Loading...</div>
+    } @else if (game()) {
+    <div class="content">
+        <div class="game-info">
+            <p>
+                <strong>Game ID:</strong>
+                <code>{{ game()!.id }}</code>
+                <button class="btn-copy-icon" (click)="copyGameId()" title="Copy ID">
+                    📋
+                </button>
+            </p>
+            <p><strong>Player:</strong> {{ game()!.players[0]?.name || 'Unknown' }}</p>
+            @if (!getOpponentPlayer()) {
+            <p class="waiting">Waiting for second player...</p>
+            } @else {
+            <p><strong>Opponent:</strong> {{ getOpponentPlayer()?.name }}</p>
+            @if (!getOpponentPlayer()?.isReady) {
+            <p class="waiting">Opponent is placing ships...</p>
+            } @else {
+            <p class="ready">Opponent is ready!</p>
+            }
+            }
+        </div>
+
+        @if (error()) {
+        <div class="error-message">{{ error() }}</div>
+        }
+
+        <div class="main-area">
+            <div class="board-section">
+                <h2>Your Board</h2>
+                <app-board [board]="board()" [isOpponent]="false" [isInteractive]="true"
+                    (cellClick)="onBoardCellClick($event)" />
+
+                <div class="board-actions">
+                    <button class="btn btn-secondary" (click)="randomPlacement()" [disabled]="loading()">
+                        🎲 Place Randomly
+                    </button>
+                    @if (selectedShip()) {
+                    <button class="btn btn-info" (click)="toggleOrientation()">
+                        🔄 Rotate ({{ orientation() === 'horizontal' ? '→' : '↓' }})
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <div class="ships-section">
+                <h2>Ships</h2>
+                <p class="instruction">
+                    @if (selectedShip()) {
+                    Selected: <strong>{{ selectedShip()!.name }}</strong>. Click on the board to place.
+                    } @else {
+                    Select a ship to place
+                    }
+                </p>
+
+                <div class="ships-list">
+                    @for (ship of ships(); track ship.id) {
+                    <div class="ship-item" [class.placed]="ship.placed"
+                        [class.selected]="selectedShip()?.id === ship.id" (click)="selectShip(ship)">
+                        <div class="ship-info">
+                            <span class="ship-name">{{ ship.name }}</span>
+                            <span class="ship-size">
+                                @for (i of getShipCells(ship.size); track i) {
+                                <span class="ship-cell">▭</span>
+                                }
+                            </span>
+                        </div>
+                        @if (ship.placed) {
+                        <span class="status">✓</span>
+                        }
+                    </div>
+                    }
+                </div>
+
+                <div class="placement-status">
+                    <p>
+                        Ships placed: {{ getPlacedShipsCount() }} / {{ getTotalShipsCount() }}
+                    </p>
+                </div>
+
+                @if (isPlayerReady()) {
+                <div class="ready-status">
+                    <p class="ready">✓ You are ready! Waiting for opponent...</p>
+                </div>
+                } @else {
+                <button class="btn btn-primary btn-large" (click)="confirmPlacement()"
+                    [disabled]="!allShipsPlaced() || loading()">
+                    @if (loading()) {
+                    <span>Confirming...</span>
+                    } @else {
+                    <span>✓ Ready for battle!</span>
+                    }
+                </button>
+                }
+            </div>
+        </div>
+    </div>
+    }
+</div>

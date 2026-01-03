@@ -1,0 +1,15 @@
+<div class="board">
+    @for (row of board(); track $index; let y = $index) {
+    <div class="board-row">
+        @for (cell of row; track $index; let x = $index) {
+        <div [class]="getCellClass(x, y)" (click)="onCellClick(x, y)">
+            @if (cell === 'hit') {
+            <span class="cell-icon">💥</span>
+            } @else if (cell === 'miss') {
+            <span class="cell-icon">•</span>
+            }
+        </div>
+        }
+    </div>
+    }
+</div>
