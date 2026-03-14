@@ -18,7 +18,7 @@ export function isValidPlacement(
   x: number,
   y: number,
   size: number,
-  orientation: 'horizontal' | 'vertical'
+  orientation: 'horizontal' | 'vertical',
 ): boolean {
   // Check if ship fits on board
   if (orientation === 'horizontal') {
@@ -48,44 +48,6 @@ export function isValidPlacement(
   }
 
   return true;
-}
-
-export function placeShipOnBoard(
-  board: CellState[][],
-  x: number,
-  y: number,
-  size: number,
-  orientation: 'horizontal' | 'vertical'
-): CellState[][] {
-  const newBoard = board.map((row) => [...row]);
-
-  for (let i = 0; i < size; i++) {
-    const placeX = orientation === 'horizontal' ? x + i : x;
-    const placeY = orientation === 'vertical' ? y + i : y;
-    newBoard[placeY][placeX] = CellState.SHIP;
-  }
-
-  return newBoard;
-}
-
-export function removeShipFromBoard(
-  board: CellState[][],
-  x: number,
-  y: number,
-  size: number,
-  orientation: 'horizontal' | 'vertical'
-): CellState[][] {
-  const newBoard = board.map((row) => [...row]);
-
-  for (let i = 0; i < size; i++) {
-    const removeX = orientation === 'horizontal' ? x + i : x;
-    const removeY = orientation === 'vertical' ? y + i : y;
-    if (newBoard[removeY][removeX] === CellState.SHIP) {
-      newBoard[removeY][removeX] = CellState.EMPTY;
-    }
-  }
-
-  return newBoard;
 }
 
 function generateUUID(): string {
@@ -129,7 +91,7 @@ export function boardToString(board: CellState[][]): string {
               return '?';
           }
         })
-        .join(' ')
+        .join(' '),
     )
     .join('\n');
 }

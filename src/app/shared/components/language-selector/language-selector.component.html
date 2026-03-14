@@ -1,0 +1,19 @@
+<div class="language-selector">
+    <button class="language-button" (click)="toggleDropdown()" type="button">
+        <span class="flag">{{ currentLanguage?.flag }}</span>
+        <span class="lang-code">{{ currentLanguage?.code?.toUpperCase() }}</span>
+        <span class="arrow" [class.open]="isOpen()">▼</span>
+    </button>
+
+    @if (isOpen()) {
+    <div class="language-dropdown">
+        @for (lang of languages; track lang.code) {
+        <button class="language-option" [class.active]="lang.code === currentLanguage?.code"
+            (click)="selectLanguage(lang.code)" type="button">
+            <span class="flag">{{ lang.flag }}</span>
+            <span class="name">{{ lang.name }}</span>
+        </button>
+        }
+    </div>
+    }
+</div>

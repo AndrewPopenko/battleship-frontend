@@ -1,17 +1,17 @@
-import { Injectable, signal } from '@angular/core';
+import { DestroyRef, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GamePhase } from '../models/game-phase.enum';
 import { GameState, Player } from '../models/game.model';
+import { WebSocketService } from './websocket.service';
 
 @Injectable({ providedIn: 'root' })
 export class GameStateService {
-  // Game state signals
   game = signal<GameState | null>(null);
   currentPlayerId = signal<string | null>(null);
   currentPlayerName = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
   loading = signal<boolean>(false);
 
-  // Computed signals
   isMyTurn = (): boolean => {
     const game = this.game();
     const playerId = this.currentPlayerId();
@@ -61,7 +61,6 @@ export class GameStateService {
     return game?.winner === playerId;
   };
 
-  // Methods for updating state
   setGame(game: GameState | null): void {
     this.game.set(game);
   }
@@ -79,12 +78,29 @@ export class GameStateService {
     this.loading.set(loading);
   }
 
-  // Reset state
   reset(): void {
     this.game.set(null);
     this.currentPlayerId.set(null);
     this.currentPlayerName.set(null);
     this.errorMessage.set(null);
     this.loading.set(false);
+  }
+
+  initializeWebSocket(wsService: WebSocketService, destroyRef: DestroyRef): void {
+    wsService
+      .onGameUpdate()
+      .pipe(takeUntilDestroyed(destroyRef))
+      .subscribe((game) => {
+        this.setGame(game);
+      });
+
+    wsService
+      .onError()
+      .pipe(takeUntilDestroyed(destroyRef))
+      .subscribe((message) => {
+        this.setError(message);
+        const timeout = setTimeout(() => this.setError(null), 3000);
+        destroyRef.onDestroy(() => clearTimeout(timeout));
+      });
   }
 }

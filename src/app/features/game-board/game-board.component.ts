@@ -1,9 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { delay, of, tap } from 'rxjs';
 import { CellState } from '../../core/models/cell-state.enum';
 import { GamePhase } from '../../core/models/game-phase.enum';
-import { GameState, Player } from '../../core/models/game.model';
+import { Player } from '../../core/models/game.model';
 import { ApiService } from '../../core/services/api.service';
 import { GameStateService } from '../../core/services/game-state.service';
 import { WebSocketService } from '../../core/services/websocket.service';
@@ -12,24 +15,23 @@ import { BoardComponent } from '../../shared/components/board/board.component';
 @Component({
   selector: 'app-game-board',
   standalone: true,
-  imports: [CommonModule, BoardComponent],
+  imports: [CommonModule, BoardComponent, TranslateModule],
   templateUrl: './game-board.component.html',
   styleUrl: './game-board.component.scss',
 })
 export class GameBoardComponent implements OnInit, OnDestroy {
   gameId = signal('');
   playerId = signal('');
-  game = signal<GameState | null>(null);
   lastShot = signal<{ x: number; y: number } | null>(null);
   gameOverMessage = signal<string | null>(null);
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private apiService: ApiService,
-    private wsService: WebSocketService,
-    protected gameState: GameStateService
-  ) {}
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly apiService = inject(ApiService);
+  private readonly wsService = inject(WebSocketService);
+  protected readonly gameState = inject(GameStateService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   get loading() {
     return this.gameState.loading;
@@ -41,15 +43,19 @@ export class GameBoardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.gameId.set(this.route.snapshot.params['id']);
-    this.playerId.set(localStorage.getItem('playerId') || '');
+    const playerId = localStorage.getItem('playerId') || '';
+    const playerName = localStorage.getItem('playerName') || '';
 
-    if (!this.playerId()) {
+    this.playerId.set(playerId);
+    this.gameState.setCurrentPlayer(playerId, playerName);
+
+    if (!playerId) {
       this.router.navigate(['/lobby']);
       return;
     }
 
     this.loadGame();
-    this.setupWebSocket();
+    this.handleWebSocket();
   }
 
   ngOnDestroy(): void {
@@ -60,7 +66,6 @@ export class GameBoardComponent implements OnInit, OnDestroy {
     this.gameState.setLoading(true);
     this.apiService.getGame(this.gameId()).subscribe({
       next: (game) => {
-        this.game.set(game);
         this.gameState.setGame(game);
         this.gameState.setLoading(false);
 
@@ -77,79 +82,59 @@ export class GameBoardComponent implements OnInit, OnDestroy {
     });
   }
 
-  setupWebSocket(): void {
+  handleWebSocket(): void {
     this.wsService.connect();
     this.wsService.joinGame(this.gameId(), this.playerId());
+    this.gameState.initializeWebSocket(this.wsService, this.destroyRef);
 
-    this.wsService.onGameUpdate().subscribe((game) => {
-      this.game.set(game);
-      this.gameState.setGame(game);
-    });
+    this.wsService
+      .onShootResult()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        tap((result) => {
+          this.lastShot.set({ x: result.x, y: result.y });
 
-    this.wsService.onShootResult().subscribe((result) => {
-      this.lastShot.set({ x: result.x, y: result.y });
+          if (result.hit && result.isSunk) {
+            console.log('Ship sunk!');
+          }
+        }),
+        delay(2000),
+        tap(() => this.lastShot.set(null)),
+      )
+      .subscribe();
 
-      // Clear last shot highlight after 2 seconds
-      setTimeout(() => this.lastShot.set(null), 2000);
-
-      if (result.hit) {
-        if (result.sunk) {
-          console.log('Ship sunk!');
-        }
-      }
-
-      if (result.gameOver) {
-        this.gameOverMessage.set(
-          result.winner === this.playerId() ? '🎉 You won!' : '😢 You lost'
-        );
-      }
-    });
-
-    this.wsService.onGameOver().subscribe((data) => {
-      this.gameOverMessage.set(
-        data.winnerId === this.playerId() ? `🎉 You won!` : `😢 ${data.winnerName} won`
-      );
-    });
-
-    this.wsService.onError().subscribe((message) => {
-      this.gameState.setError(message);
-      setTimeout(() => this.gameState.setError(null), 3000);
-    });
+    this.wsService
+      .onGameOver()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        const messageKey = data.winnerId === this.playerId() ? 'game.youWon' : 'game.opponentWon';
+        this.translate.get(messageKey, { name: data.winnerName }).subscribe((msg: string) => {
+          this.gameOverMessage.set(msg);
+        });
+      });
   }
 
-  getCurrentPlayer(): Player | null {
-    if (!this.game()) return null;
-    return this.game()!.players.find((p) => p?.id === this.playerId()) || null;
-  }
-
-  getOpponent(): Player | null {
-    if (!this.game()) return null;
-    return this.game()!.players.find((p) => p?.id !== this.playerId()) || null;
-  }
-
-  isMyTurn(): boolean {
-    return this.game()?.turn === this.playerId();
+  get game() {
+    return this.gameState.game();
   }
 
   onOpponentBoardClick(coords: { x: number; y: number }): void {
-    if (!this.isMyTurn()) {
-      this.gameState.setError('Not your turn!');
-      setTimeout(() => this.gameState.setError(null), 2000);
+    if (!this.gameState.isMyTurn()) {
+      this.translate.get('game.notYourTurn').subscribe((msg: string) => this.showError(msg));
       return;
     }
 
-    if (this.game()?.phase !== GamePhase.IN_PROGRESS) {
+    if (this.game?.phase !== GamePhase.IN_PROGRESS) {
       return;
     }
 
-    const opponent = this.getOpponent();
+    const opponent = this.gameState.getOpponent();
     if (!opponent) return;
 
     // Check if cell was already shot
     const cell = opponent.board[coords.y][coords.x];
     if (cell === CellState.HIT || cell === CellState.MISS) {
-      this.gameState.setError('You already shot here!');
-      setTimeout(() => this.gameState.setError(null), 2000);
+      this.translate.get('game.alreadyShot').subscribe((msg: string) => this.showError(msg));
       return;
     }
 
@@ -157,12 +142,12 @@ export class GameBoardComponent implements OnInit, OnDestroy {
   }
 
   getMyBoard(): CellState[][] {
-    const player = this.getCurrentPlayer();
+    const player = this.gameState.getCurrentPlayer();
     return player?.board || [];
   }
 
   getOpponentBoard(): CellState[][] {
-    const opponent = this.getOpponent();
+    const opponent = this.gameState.getOpponent();
     return opponent?.board || [];
   }
 
@@ -177,6 +162,17 @@ export class GameBoardComponent implements OnInit, OnDestroy {
 
   copyGameId(): void {
     navigator.clipboard.writeText(this.gameId());
+  }
+
+  private showError(message: string, duration: number = 2000): void {
+    this.gameState.setError(message);
+    of(null)
+      .pipe(
+        delay(duration),
+        tap(() => this.gameState.setError(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   GamePhase = GamePhase;

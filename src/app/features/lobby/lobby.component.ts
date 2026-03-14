@@ -2,13 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../../core/services/api.service';
 import { GameStateService } from '../../core/services/game-state.service';
 
 @Component({
   selector: 'app-lobby',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './lobby.component.html',
   styleUrl: './lobby.component.scss',
 })
@@ -20,7 +21,8 @@ export class LobbyComponent {
   constructor(
     private apiService: ApiService,
     private router: Router,
-    protected gameState: GameStateService
+    protected gameState: GameStateService,
+    private translate: TranslateService,
   ) {}
 
   // Use loading and error from gameState
@@ -34,7 +36,9 @@ export class LobbyComponent {
 
   createGame(): void {
     if (!this.playerName().trim()) {
-      this.gameState.setError('Enter player name');
+      this.translate
+        .get('errors.enterPlayerName')
+        .subscribe((msg: string) => this.gameState.setError(msg));
       return;
     }
 
@@ -53,19 +57,25 @@ export class LobbyComponent {
       },
       error: (err) => {
         this.gameState.setLoading(false);
-        this.gameState.setError('Error creating game: ' + err.message);
+        this.translate
+          .get('errors.createGame')
+          .subscribe((msg) => this.gameState.setError(msg + ': ' + err.message));
       },
     });
   }
 
   joinGame(): void {
     if (!this.playerName().trim()) {
-      this.gameState.setError('Enter player name');
+      this.translate
+        .get('errors.enterPlayerName')
+        .subscribe((msg: string) => this.gameState.setError(msg));
       return;
     }
 
     if (!this.gameIdToJoin().trim()) {
-      this.gameState.setError('Enter game ID');
+      this.translate
+        .get('errors.enterGameId')
+        .subscribe((msg: string) => this.gameState.setError(msg));
       return;
     }
 
@@ -86,7 +96,9 @@ export class LobbyComponent {
       },
       error: (err) => {
         this.gameState.setLoading(false);
-        this.gameState.setError('Error connecting to game: ' + err.message);
+        this.translate
+          .get('errors.joinGame')
+          .subscribe((msg) => this.gameState.setError(msg + ': ' + err.message));
       },
     });
   }

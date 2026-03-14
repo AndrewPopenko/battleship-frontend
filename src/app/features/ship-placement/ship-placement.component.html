@@ -1,27 +1,28 @@
 <div class="ship-placement-container">
-    <h1>Ship Placement</h1>
+    <h1>{{ 'shipPlacement.title' | translate }}</h1>
 
     @if (loading()) {
-    <div class="loading">Loading...</div>
+    <div class="loading">{{ 'shipPlacement.loading' | translate }}</div>
     } @else if (game()) {
     <div class="content">
         <div class="game-info">
             <p>
-                <strong>Game ID:</strong>
+                <strong>{{ 'shipPlacement.gameId' | translate }}</strong>
                 <code>{{ game()!.id }}</code>
-                <button class="btn-copy-icon" (click)="copyGameId()" title="Copy ID">
+                <button class="btn-copy-icon" (click)="copyGameId()" [title]="'lobby.copyId' | translate">
                     📋
                 </button>
             </p>
-            <p><strong>Player:</strong> {{ game()!.players[0]?.name || 'Unknown' }}</p>
+            <p><strong>{{ 'shipPlacement.player' | translate }}</strong> {{ game()!.players[0]?.name ||
+                ('shipPlacement.unknown' | translate) }}</p>
             @if (!getOpponentPlayer()) {
-            <p class="waiting">Waiting for second player...</p>
+            <p class="waiting">{{ 'shipPlacement.waitingForPlayer' | translate }}</p>
             } @else {
-            <p><strong>Opponent:</strong> {{ getOpponentPlayer()?.name }}</p>
+            <p><strong>{{ 'shipPlacement.opponent' | translate }}</strong> {{ getOpponentPlayer()?.name }}</p>
             @if (!getOpponentPlayer()?.isReady) {
-            <p class="waiting">Opponent is placing ships...</p>
+            <p class="waiting">{{ 'shipPlacement.opponentPlacing' | translate }}</p>
             } @else {
-            <p class="ready">Opponent is ready!</p>
+            <p class="ready">{{ 'shipPlacement.opponentReady' | translate }}</p>
             }
             }
         </div>
@@ -32,29 +33,30 @@
 
         <div class="main-area">
             <div class="board-section">
-                <h2>Your Board</h2>
+                <h2>{{ 'shipPlacement.yourBoard' | translate }}</h2>
                 <app-board [board]="board()" [isOpponent]="false" [isInteractive]="true"
                     (cellClick)="onBoardCellClick($event)" />
 
                 <div class="board-actions">
                     <button class="btn btn-secondary" (click)="randomPlacement()" [disabled]="loading()">
-                        🎲 Place Randomly
+                        🎲 {{ 'shipPlacement.randomPlacement' | translate }}
                     </button>
                     @if (selectedShip()) {
                     <button class="btn btn-info" (click)="toggleOrientation()">
-                        🔄 Rotate ({{ orientation() === 'horizontal' ? '→' : '↓' }})
+                        🔄 {{ 'shipPlacement.rotate' | translate }} ({{ orientation() === 'horizontal' ?
+                        ('shipPlacement.horizontal' | translate) : ('shipPlacement.vertical' | translate) }})
                     </button>
                     }
                 </div>
             </div>
 
             <div class="ships-section">
-                <h2>Ships</h2>
+                <h2>{{ 'shipPlacement.ships' | translate }}</h2>
                 <p class="instruction">
                     @if (selectedShip()) {
-                    Selected: <strong>{{ selectedShip()!.name }}</strong>. Click on the board to place.
+                    {{ 'shipPlacement.selectedShip' | translate: { name: selectedShip()!.name } }}
                     } @else {
-                    Select a ship to place
+                    {{ 'shipPlacement.selectShip' | translate }}
                     }
                 </p>
 
@@ -79,21 +81,22 @@
 
                 <div class="placement-status">
                     <p>
-                        Ships placed: {{ getPlacedShipsCount() }} / {{ getTotalShipsCount() }}
+                        {{ 'shipPlacement.placed' | translate: { placed: getPlacedShipsCount(), total:
+                        getTotalShipsCount() } }}
                     </p>
                 </div>
 
                 @if (isPlayerReady()) {
                 <div class="ready-status">
-                    <p class="ready">✓ You are ready! Waiting for opponent...</p>
+                    <p class="ready">{{ 'shipPlacement.readyStatus' | translate }}</p>
                 </div>
                 } @else {
                 <button class="btn btn-primary btn-large" (click)="confirmPlacement()"
                     [disabled]="!allShipsPlaced() || loading()">
                     @if (loading()) {
-                    <span>Confirming...</span>
+                    <span>{{ 'shipPlacement.confirming' | translate }}</span>
                     } @else {
-                    <span>✓ Ready for battle!</span>
+                    <span>✓ {{ 'shipPlacement.confirmButton' | translate }}</span>
                     }
                 </button>
                 }

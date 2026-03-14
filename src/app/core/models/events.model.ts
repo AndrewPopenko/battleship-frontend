@@ -16,7 +16,7 @@ export interface ServerToClientEvents {
 
 export interface ShootResult {
   hit: boolean;
-  sunk: boolean;
+  isSunk: boolean;
   gameOver: boolean;
   winner: string | null;
   x: number;

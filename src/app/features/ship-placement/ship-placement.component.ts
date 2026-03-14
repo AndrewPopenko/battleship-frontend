@@ -1,19 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CellState } from '../../core/models/cell-state.enum';
 import { GameState, Player } from '../../core/models/game.model';
 import { ApiService } from '../../core/services/api.service';
 import { GameStateService } from '../../core/services/game-state.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { BoardComponent } from '../../shared/components/board/board.component';
-import {
-  createEmptyBoard,
-  isValidPlacement,
-  placeShipOnBoard,
-  removeShipFromBoard,
-  ShipPlacement,
-} from '../../shared/utils/board.utils';
+import { createEmptyBoard, isValidPlacement, ShipPlacement } from '../../shared/utils/board.utils';
 
 interface ShipToPlace {
   id: string;
@@ -26,7 +21,7 @@ interface ShipToPlace {
 @Component({
   selector: 'app-ship-placement',
   standalone: true,
-  imports: [CommonModule, BoardComponent],
+  imports: [CommonModule, BoardComponent, TranslateModule],
   templateUrl: './ship-placement.component.html',
   styleUrl: './ship-placement.component.scss',
 })
@@ -46,7 +41,8 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
     private router: Router,
     private apiService: ApiService,
     private wsService: WebSocketService,
-    protected gameState: GameStateService
+    protected gameState: GameStateService,
+    private translate: TranslateService,
   ) {}
 
   get loading() {
@@ -96,7 +92,9 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error loading game:', err);
-        this.gameState.setError('Error loading game');
+        this.translate
+          .get('errors.loadingGame')
+          .subscribe((msg: string) => this.gameState.setError(msg));
         this.gameState.setLoading(false);
       },
     });
@@ -133,19 +131,22 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
   removeShip(ship: ShipToPlace): void {
     if (!ship.placement) return;
 
-    const newBoard = removeShipFromBoard(
-      this.board(),
-      ship.placement.x,
-      ship.placement.y,
-      ship.size,
-      ship.placement.orientation
-    );
-
+    // Remove ship from local board visualization
+    const newBoard = this.board().map((row) => [...row]);
+    for (let i = 0; i < ship.size; i++) {
+      const removeX =
+        ship.placement.orientation === 'horizontal' ? ship.placement.x + i : ship.placement.x;
+      const removeY =
+        ship.placement.orientation === 'vertical' ? ship.placement.y + i : ship.placement.y;
+      if (newBoard[removeY][removeX] === CellState.SHIP) {
+        newBoard[removeY][removeX] = CellState.EMPTY;
+      }
+    }
     this.board.set(newBoard);
 
     // Update ships array
     const updatedShips = this.ships().map((s) =>
-      s.id === ship.id ? { ...s, placed: false, placement: undefined } : s
+      s.id === ship.id ? { ...s, placed: false, placement: undefined } : s,
     );
     this.ships.set(updatedShips);
   }
@@ -161,14 +162,13 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
     const valid = isValidPlacement(this.board(), coords.x, coords.y, ship.size, this.orientation());
 
     if (valid) {
-      const newBoard = placeShipOnBoard(
-        this.board(),
-        coords.x,
-        coords.y,
-        ship.size,
-        this.orientation()
-      );
-
+      // Place ship on local board for visualization
+      const newBoard = this.board().map((row) => [...row]);
+      for (let i = 0; i < ship.size; i++) {
+        const placeX = this.orientation() === 'horizontal' ? coords.x + i : coords.x;
+        const placeY = this.orientation() === 'vertical' ? coords.y + i : coords.y;
+        newBoard[placeY][placeX] = CellState.SHIP;
+      }
       this.board.set(newBoard);
 
       // Update ships array
@@ -184,12 +184,14 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
                 orientation: this.orientation(),
               },
             }
-          : s
+          : s,
       );
       this.ships.set(updatedShips);
       this.selectedShip.set(null);
     } else {
-      this.gameState.setError('Cannot place ship here');
+      this.translate
+        .get('errors.cannotPlace')
+        .subscribe((msg: string) => this.gameState.setError(msg));
       setTimeout(() => this.gameState.setError(null), 2000);
     }
   }
@@ -207,7 +209,9 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
     }
 
     if (!this.allShipsPlaced()) {
-      this.gameState.setError('Place all ships before confirming');
+      this.translate
+        .get('errors.placeAllShips')
+        .subscribe((msg: string) => this.gameState.setError(msg));
       return;
     }
 
@@ -220,7 +224,9 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
 
     // Validate we have placements
     if (placements.length === 0) {
-      this.gameState.setError('No placement data available');
+      this.translate
+        .get('errors.noPlacementData')
+        .subscribe((msg: string) => this.gameState.setError(msg));
       this.gameState.setLoading(false);
       return;
     }
@@ -238,7 +244,9 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error placing ships:', err);
-        this.gameState.setError('Error placing ships');
+        this.translate
+          .get('errors.placingShips')
+          .subscribe((msg: string) => this.gameState.setError(msg));
         this.gameState.setLoading(false);
       },
     });
@@ -275,7 +283,9 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error random placing ships:', err);
-        this.gameState.setError('Error with random placement');
+        this.translate
+          .get('errors.randomPlacement')
+          .subscribe((msg) => this.gameState.setError(msg));
         this.gameState.setLoading(false);
       },
     });
@@ -300,14 +310,15 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
   }
 
   getShipName(size: number): string {
-    const shipNames: Record<number, string> = {
-      1: 'Boat',
-      2: 'Destroyer',
-      3: 'Cruiser',
-      4: 'Battleship',
-      5: 'Carrier',
+    const shipKeys: Record<number, string> = {
+      1: 'ships.boat',
+      2: 'ships.destroyer',
+      3: 'ships.cruiser',
+      4: 'ships.battleship',
+      5: 'ships.battleship',
     };
-    return shipNames[size] || `Ship (${size})`;
+    const key = shipKeys[size] || 'ships.defaultName';
+    return this.translate.instant(key, { size });
   }
 
   copyGameId(): void {
@@ -318,7 +329,7 @@ export class ShipPlacementComponent implements OnInit, OnDestroy {
         },
         (err) => {
           console.error('Failed to copy game ID:', err);
-        }
+        },
       );
     }
   }
